@@ -1,0 +1,75 @@
+{% extends 'wagtailadmin/reports/base_report.html' %}
+{% load i18n wagtailadmin_tags %}
+{% block results %}
+    <form action="" method="get">
+        {% csrf_token %}
+        {% field_row max_content=True %}
+            {% rawformattedfield label_text=form.fields.date_from.label id_for_label="date_from" %}
+                <input type="date" name="date_from" id="date_from" value="{{form.date_from.value}}" data-controller="w-submit" data-action="change->w-submit#submit">
+            {% endrawformattedfield %}
+            {% rawformattedfield label_text=form.fields.date_to.label id_for_label="date_to" %}
+                <input type="date" name="date_to" id="date_to" value="{{form.date_to.value}}" data-controller="w-submit" data-action="change->w-submit#submit">
+            {% endrawformattedfield %}
+            {% rawformattedfield label_text=form.fields.income_type.label id_for_label="income_type" %}
+                <select id="income_type" name="income_type" data-controller="w-submit" data-action="change->w-submit#submit">
+                    {% for value, text in form.fields.income_type.choices %}
+                        {% if form.income_type.value == value %}
+                            <option selected value="{{value}}">{{text}}</option>
+                        {% else %}
+                            <option value="{{value}}">{{text}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            {% endrawformattedfield %}
+            {% translate 'Total amount' as total_amount_label %}
+            {% rawformattedfield label_text=total_amount_label id_for_label="total_amount" %}
+                <input disabled type="number" id="total_amount" value="{{total_amount}}">
+            {% endrawformattedfield %}
+        {% endfield_row %}
+    </form>
+
+    {% if object_list %}
+        <table class="listing">
+            <thead>
+                <tr>
+                    <th>
+                        {% translate 'Date' %}
+                    </th>
+                    <th >
+                        {% translate 'Amount' %}
+                    </th>
+                    <th>
+                        {% translate 'Type' %}
+                    </th>
+                    <th>
+                        {% translate 'Order' %}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in object_list %}
+                    <tr>
+                        <td class="title" valign="top">
+                            {{order.date_created}}
+                        </td>
+                        <td class="status" valign="top">
+                            {{order.total}} ₪
+                        </td>
+                        <td>
+                            {% if order.extra.replenishment_amount %}
+                                {% translate 'Balance replenishment' %}
+                            {% else %}
+                                {% translate 'Purchase' %}
+                            {% endif %}
+                        </td>
+                        <td valign="top">
+                            <a href="/admin/shop/order/edit/{{order.id}}/">{{order.ref}}</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>{% trans "No pages found." %}</p>
+    {% endif %}
+{% endblock %}

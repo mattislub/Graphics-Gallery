@@ -1,0 +1,75 @@
+ב־Next.js, קבצי CSS יכולים להיות מיובאים ישירות לקבצי JavaScript או React Component. כדי להמיר את הקובץ שלך, עקוב אחר ההוראות הבאות:
+
+1. צור קובץ CSS חדש בתוך תיקיית ה־styles שלך (אם אין לך אחת, צור אותה). נניח שהנתיב החדש הוא `./styles/global.css`.
+
+2. העתק את כל התוכן מהקובץ המקורי לקובץ החדש.
+
+3. צור קובץ `_app.js` בתוך תיקיית ה־pages שלך (אם אין לך אחד כבר). הקובץ `_app.js` הוא קומפוננטה מיוחדת שמאפשרת לך להתאים אישית את ההתנהגות הגלובלית של האפליקציה שלך.
+
+4. בתוך הקובץ `_app.js`, ייבא את הקובץ `global.css` שיצרת. זה יכול להיראות כך:
+
+```javascript
+import '../styles/global.css'
+
+// This default export is required in a new `pages/_app.js` file.
+export default function MyApp({ Component, pageProps }) {
+  return <Component {...pageProps} />
+}
+```
+
+5. וודא שהגדרת את ההגדרות הנכונות בקובץ `next.config.js` שלך. אם אין לך קובץ כזה, צור אחד בשורש הפרויקט שלך. הוסף את הקוד הבא לקובץ:
+
+```javascript
+module.exports = {
+  future: {
+    webpack5: true,
+  },
+  webpack: (config, { isServer }) => {
+    // Fixes npm packages that depend on `fs` module
+    if (!isServer) {
+      config.resolve.fallback = {
+        fs: false,
+      };
+    }
+
+    return config;
+  },
+}
+```
+
+6. ודא שהתקנת את התלויות הנדרשות על ידי הרצת הפקודה הבאה בשורת הפקודה:
+
+```bash
+npm install tailwindcss postcss autoprefixer
+```
+
+או אם אתה משתמש ב־yarn:
+
+```bash
+yarn add tailwindcss postcss autoprefixer
+```
+
+7. ודא שיש לך קובץ `postcss.config.js` בשורש הפרויקט שלך עם התוכן הבא:
+
+```javascript
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+8. ולבסוף, ודא שיש לך קובץ `tailwind.config.js` בשורש הפרויקט שלך. אם אין לך אחד, אתה יכול ליצור אחד על ידי הרצת הפקודה הבאה:
+
+```bash
+npx tailwindcss init
+```
+
+או אם אתה משתמש ב־yarn:
+
+```bash
+yarn tailwindcss init
+```
+
+זהו! עכשיו אתה יכול להשתמש ב־Tailwind CSS באפליקציית Next.js שלך.

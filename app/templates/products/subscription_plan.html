@@ -1,0 +1,29 @@
+{% load i18n %}
+
+<form class="border-blue border-2 rounded-xl h-full p-5 flex gap-5 flex-col md:flex-row text-blue bg-white" method="post" action="/user/purchase-subscription/">
+    {% csrf_token %}
+    <input class="" readonly id="subscription_plan_id" name="subscription_plan_id" type="hidden" value="{{subscription_plan.id}}">
+    <div class="flex flex-col justify-between order-last md:order-first gap-2.5">
+        {% if request.user.is_authenticated %}
+            <button type="submit" class="mx-auto w-fit flex gap-4 items-center rounded-full font-bold text-lg py-2 px-5 hover:bg-gradient-2 border-2 border-blue" role="link" type="submit">
+                <div class="rounded-full py-0.5 px-5 bg-blue text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                    </svg>
+                </div>
+                {% translate 'Buy' %}
+            </button>
+        {% endif %}
+        {% if subscription_plan.badge_text %}
+        <div class="mx-auto w-fit rounded-full font-bold text-lg py-2 px-5 text-white bg-red-500">
+            <p>{{subscription_plan.badge_text}}</p>
+        </div>
+        {% endif %}
+    </div>
+    <div class="flex flex-col gap-2.5 w-full">
+        <p class="font-bold text-lg pb-2.5 border-b border-blue text-end">{{subscription_plan.main_text}}</p>
+        <p class="font-bold text-lg pb-2.5 border-b border-blue text-end">{{subscription_plan.help_text}}</p>
+        <p class="font-bold text-lg pb-2.5 border-b border-blue text-end">{% if subscription_plan.unlimited %} ∞ {% else %} {{subscription_plan.download_limit}} {% endif %} {% translate 'downloads' %} / {{subscription_plan.duration_days}} {% translate 'days' %}</p>
+        <p class="text-lg text-end">{% translate 'Price' %} <span class="text-orange font-bold">₪{{subscription_plan.price}}</span></p>
+    </div>
+</form>

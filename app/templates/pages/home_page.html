@@ -1,0 +1,173 @@
+{% extends 'pages/root_page.html' %}
+{% load wagtailimages_tags wagtailcore_tags i18n pages product static %}
+
+
+{% block extra_css %}
+    <style>
+        .clip-normal {
+            clip-path: polygon(0% 0%, 55% 0%, 100% 100%, 45% 100%);
+        }
+        .clip-thin {
+            clip-path: polygon(0% 0%, 25% 0%, 100% 100%, 75% 100%);
+        }
+        .clip-big {
+            clip-path: polygon(0% 0%, 82% 0%, 100% 100%, 18% 100%);
+        }
+        .clip-bg {
+            clip-path: polygon(0% 0%, 87% 0%, 100% 100%, 13% 100%);
+        }
+    </style>
+{% endblock %}
+
+{% block sub_page_content %}
+    <div class="relative -mt-28">
+        <div class="absolute inset-0 bg-center bg-cover -z-10" style="background-image: url('{% static 'media/background_1.webp' %}');"></div>
+        <div class="container -z-10">
+            <div class="mx-2.5">
+                <div class="grid grid-cols-12">
+                    <div class="col-span-8 hidden sm:block">
+                        <div class="flex w-full h-full relative"
+                            x-data="{
+                                apply_state(target, state) {
+                                    if (state == 'normal') {
+                                        $refs['smart-header-item-' + target].classList.remove('clip-big', 'clip-thin', 'basis-[70%]', 'basis-1/6');
+                                        $refs['smart-header-item-' + target].classList.add('clip-normal', 'basis-[27%]');
+                                        $refs['smart-header-item-content-' + target].classList.remove('flex');
+                                        $refs['smart-header-item-content-' + target].classList.add('hidden');
+                                    }
+                                    else if (state == 'big') {
+                                        $refs['smart-header-item-' + target].classList.remove('clip-normal', 'clip-thin', 'basis-[70%]', 'basis-[27%]', 'basis-1/6');
+                                        $refs['smart-header-item-' + target].classList.add('clip-big', 'basis-[70%]');
+                                        $refs['smart-header-item-content-' + target].classList.remove('hidden');
+                                        $refs['smart-header-item-content-' + target].classList.add('flex');
+                                    }
+                                    else if (state == 'thin') {
+                                        $refs['smart-header-item-' + target].classList.remove('clip-normal', 'clip-big', 'basis-[70%]', 'basis-[27%]', 'basis-1/6');
+                                        $refs['smart-header-item-' + target].classList.add('clip-thin', 'basis-1/6');
+                                        $refs['smart-header-item-content-' + target].classList.remove('flex');
+                                        $refs['smart-header-item-content-' + target].classList.add('hidden');
+                                    }
+                                },
+
+                                show_bigger(hovered_item) {
+                                    for (let i = 0; i < 5; i++) {
+                                        if (i != hovered_item) this.apply_state(i, 'thin');
+                                        else this.apply_state(i, 'big');
+                                    }
+                                    this.update_sizes()
+
+                                },
+
+                                show_normal() {
+                                    for (let i = 0; i < 5; i++) {
+                                        this.apply_state(i, 'normal');
+                                    }
+                                    this.update_sizes()
+                                },
+
+                                update_sizes(itertions = 1) {
+                                    for (let i = 0; i < itertions; i++) {
+                                        let total_width = 20;
+                                        for (let i = 0; i < 5; i++) {
+                                            let boundingRect = $refs['smart-header-item-' + i].getBoundingClientRect();
+                                            let computedStyle = getComputedStyle($refs['smart-header-item-' + i]);
+                                            let clipPath = computedStyle.clipPath;
+
+                                            let points = clipPath.match(/([\d\.]+)/g);
+                                            if (points.length > 0) {
+                                                let width = boundingRect.width;
+                                                let empty_width = (100 - parseFloat(points[2])) * width / 100;
+                                                const newMargin = 10 - empty_width;
+                                                $refs['smart-header-item-' + i].style.marginRight = `${newMargin}px`;
+
+                                                if (i === 4) total_width += width;
+                                                else total_width += (width - empty_width + 10);
+
+                                            }
+                                        }
+                                        $refs['smart-header-bg'].style.width = `${total_width}px`;
+                                    }
+                                }
+                            }"
+                            x-init="update_sizes(2);"
+                            x-ref="smart-header">
+                            <div x-ref="smart-header-bg" class="absolute inset-y-0 left-0 -ml-2.5 bg-white clip-bg"></div>
+                            {% get_popular_queries 'categories' 5 as popular_categories %}
+                            {% for popular_category in popular_categories %}
+                                {% image popular_category.preview_image original as image %}
+                                <div class="basis-[27%] clip-normal"
+                                    x-ref="smart-header-item-{{forloop.counter0}}"
+                                    @mouseenter="show_bigger({{forloop.counter0}})"
+                                    @mouseleave="show_normal()">
+                                    <div class="w-full h-full bg-cover bg-center flex items-center " style="background-image: url('{{image.url}}');">
+                                        <div x-ref="smart-header-item-content-{{forloop.counter0}}" class="w-full hidden flex-col items-center">
+                                            <p class="text-blue font-light text-3xl">{{popular_category.name}}</p>
+                                            <a href="{% get_url_by_page_name 'images' %}?image-category={{popular_category.slug}}" target="_blank" class="mt-2.5 flex gap-4 items-center rounded-full font-bold text-lg border-2 border-blue bg-blue text-white py-2 px-5 hover:bg-gradient-2 group">
+                                                    
+                                                <div class="rounded-full border-2 py-0.5 px-5 bg-blue border-white group-hover:border-blue">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                                                    </svg>
+                                                </div>
+
+                                                {% translate 'Open category' %}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="col-span-12 md:col-span-4 ofset">
+                        <h1 class="text-white text-end font-bold text-3xl sm:text-6xl md:text-7xl lg:text-8xl mt-44">{{page.title}}</h1>
+                        <h2 class="mt-2.5 text-end text-white text-2xl mb-12">{{page.sub_title}}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% include 'blocks/search_block.html' with change_url=False %}
+
+    <div class="grow">
+        {% if page.popular_products %}
+            {% render_popular_products page.popular_products %}
+        {% endif %}
+
+        {% if page.popular_categories %}
+            {% render_popular_categories page.popular_categories %}
+        {% endif %}
+        <div class="mt-12 container">
+            <div class="mx-2.5 flex flex-col gap-5">
+                <div class="max-w-2xl self-end">
+                    <h2 class="text-blue text-end text-4xl sm:text-7xl leading-none font-bold ">
+                        {% translate 'The perfect model' %}
+                        <span class="text-orange">
+                            {% translate 'for finding' %}
+                        </span>
+                        <div class="flex items-end justify-end gap-2.5">
+                            <span class="border-2 border-blue rounded-full py-2 px-3.5 pulse">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="72" height="17" viewBox="0 0 72 17" fill="none">
+                                    <path d="M0.399789 9.41385L0.401009 9.41514L7.5218 16.5016C8.05526 17.0325 8.91811 17.0305 9.44912 16.497C9.98005 15.9635 9.97801 15.1007 9.44455 14.5697L4.66364 9.81199L69.999 9.81199C70.7517 9.81199 71.3618 9.20188 71.3618 8.44921C71.3618 7.69655 70.7517 7.08644 69.999 7.08644L4.66371 7.08643L9.44449 2.32869C9.97794 1.79775 9.97999 0.934911 9.44905 0.401451C8.91804 -0.132145 8.05513 -0.133983 7.52174 0.396818L0.400941 7.48327L0.39972 7.48456C-0.13401 8.01727 -0.132308 8.88291 0.399789 9.41385Z" fill="currentColor"/>
+                                </svg>
+                            </span>
+                            {% translate 'your picture' %}
+                        </div>
+                    </h2>
+                </div>
+                {% for block in page.advertising_blocks %}
+                    {% include_block block %}
+                {% endfor %}
+            </div>
+        </div>
+
+        {% if page.last_added_products %}
+            {% render_last_added_products page.last_added_products %}
+        {% endif %}
+
+        {% if page.popular_queries %}
+            {% render_popular_queries page.popular_queries %}
+        {% endif %}
+    </div>
+
+{% endblock %}

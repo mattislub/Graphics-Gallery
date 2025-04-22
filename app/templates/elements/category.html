@@ -1,0 +1,22 @@
+{% load i18n wagtailimages_tags pages %}
+
+{% image category.preview_image original as image %}
+<div class="roundex-3xl relative h-40 sm:h-60 group" style="direction: ltr;">
+    <div class="rounded-3xl h-full w-full">
+        <img class="object-cover h-full w-full rounded-3xl bg-white" src="{{image.url}}" alt="{{category.name}}">
+    </div>
+    <div class="absolute inset-0 rounded-3xl bg-gradient-to-t from-15% from-blue p-5 group-hover:from-45%">
+        <div class="flex flex-col items-center text-lg text-white text-center h-full">
+            <p class="mt-auto text-3xl font-bold">{{category.name}}</p>
+            <a href="{% get_url_by_page_name 'images' %}?image-category={{category.slug}}" target="_blank" class="mt-2.5 flex gap-4 items-center rounded-full font-bold text-lg bg-white bg-opacity-40 text-white py-2 px-5 group-hover:bg-opacity-100 group-hover:text-blue">
+                                                    
+                <div class="rounded-full border-2 py-0.5 px-5 text-white border-white group-hover:bg-blue">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                    </svg>
+                </div>
+                {% translate 'Open category' %}
+            </a>
+        </div>
+    </div>
+</div>

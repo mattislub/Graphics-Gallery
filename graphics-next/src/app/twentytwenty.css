@@ -1,0 +1,46 @@
+ב-Next.js, אנחנו משתמשים בקומפוננטות React ולכן אנחנו צריכים להמיר את הקובץ CSS לקומפוננטה של React. אבל לפני כן, אנחנו צריכים להתקין את התוסף `styled-jsx`:
+
+```
+npm install --save styled-jsx
+```
+
+לאחר מכן, ניצור קומפוננטה של React ונשתמש ב-`styled-jsx` כדי להכניס את הסגנונות שלנו:
+
+```jsx
+import React from 'react';
+
+const TwentyTwentyStyles = () => (
+  <style jsx global>{`
+    .twentytwenty-horizontal .twentytwenty-handle:before, .twentytwenty-horizontal .twentytwenty-handle:after, .twentytwenty-vertical .twentytwenty-handle:before, .twentytwenty-vertical .twentytwenty-handle:after {
+      content: " ";
+      display: block;
+      background: white;
+      position: absolute;
+      z-index: 30;
+      -webkit-box-shadow: 0px 0px 12px rgba(51, 51, 51, 0.5);
+      -moz-box-shadow: 0px 0px 12px rgba(51, 51, 51, 0.5);
+      box-shadow: 0px 0px 12px rgba(51, 51, 51, 0.5); 
+    }
+    // המשך הקוד שלך כאן...
+  `}</style>
+);
+
+export default TwentyTwentyStyles;
+```
+
+אתה יכול להשתמש בקומפוננטה הזו בכל קומפוננטה אחרת שאתה רוצה להחיל עליה את הסגנונות. פשוט ייבא את הקומפוננטה והשתמש בה בתוך ה-`render` שלך:
+
+```jsx
+import TwentyTwentyStyles from './TwentyTwentyStyles';
+
+const MyComponent = () => (
+  <div>
+    <TwentyTwentyStyles />
+    {/* הקוד שלך כאן... */}
+  </div>
+);
+
+export default MyComponent;
+```
+
+שים לב שהקוד המוצג מניח שהקובץ `TwentyTwentyStyles.js` נמצא באותה התיקייה כמו הקובץ שאתה מייבא אותו אליו. אם הוא במיקום אחר, תצטרך לעדכן את הנתיב בהתאם.

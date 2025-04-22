@@ -1,0 +1,61 @@
+{% extends "wagtailadmin/base.html" %}
+{% load i18n %}
+
+
+{% block titletag %}
+    {% translate 'Multiple Product Loading' as page_text %}
+    {{page_text}} 
+{% endblock %}
+
+{% block content %}
+
+    {% translate 'Multiple Product Loading' as page_text %}
+    {% include "wagtailadmin/shared/header.html" with title=page_text icon="upload" %}
+    <div class="nice-padding">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="w-panel">
+                <h2 class="w-panel__heading w-panel__heading--label" id="panel-child-product_settings-image-heading" data-panel-heading="">
+                    <label for="images"><span data-panel-heading-text="">{% translate 'Zip file with images' %}</span><span class="w-required-mark" data-panel-required="">*</span></label>
+                </h2>
+                <div class="w-field__input">
+                    <input type="file" name="images" accept=".zip" id="images">
+                </div>
+            </div>
+            <div class="w-panel">
+                <h2 class="w-panel__heading w-panel__heading--label" id="panel-child-product_settings-image-heading" data-panel-heading="">
+                    <label for="images"><span data-panel-heading-text="">{% translate 'Category' %}</span><span class="w-required-mark" data-panel-required="">*</span></label>
+                </h2>
+                <div class="w-field__input">
+                    <select style="width: 100%;" name="category">
+                        {% for category in categories %}
+                            <option value="{{category.slug}}">{{category.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="w-panel">
+                <h2 class="w-panel__heading w-panel__heading--label" id="panel-child-product_settings-image-heading" data-panel-heading="">
+                    <label for="images"><span data-panel-heading-text="">{% translate 'Selling option' %}</span><span class="w-required-mark" data-panel-required="">*</span></label>
+                </h2>
+                <div class="w-field__input">
+                    <select style="width: 100%;" name="selling_option">
+                        <option value="usual">{% translate 'Usual' %}</option>
+                        <option value="premium">{% translate 'Premium' %}</option>
+                        <option value="subscription">{% translate 'Subscription' %}</option>
+                    </select>
+                </div>
+            </div>
+            <div class="w-panel">
+                <h2 class="w-panel__heading w-panel__heading--label" id="panel-child-product_settings-image-heading" data-panel-heading="">
+                    <label for="images"><span data-panel-heading-text="">{% translate 'Price' %}</span><span class="w-required-mark" data-panel-required="">*</span></label>
+                </h2>
+                <div class="w-field__input">
+                    <input type="number" name="price" value="0.00">
+                </div>
+            </div>
+            <input type="submit" value="Save" class="button">
+        </form>
+    </div>
+
+{% endblock %}

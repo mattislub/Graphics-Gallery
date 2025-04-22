@@ -1,0 +1,50 @@
+{% extends 'pages/root_page.html' %}
+{% load i18n wagtailimages_tags wagtailcore_tags %}
+
+{% block sub_page_content %}
+    <div class="container grow mt-12">
+        <div class="mx-2.5">
+            {% image page.image original as image %}
+            <img class="mx-auto" src="{{image.url}}" alt="faq">
+            <h1 class="text-4xl font-black text-center mt-12 leading-9">{{page.title}}</h1>
+            <h2 class="text-3xl font-normal text-center mt-4 leading-8">{{page.sub_title}}</h2>
+            <div class="flex flex-col gap-5 mt-12">
+                {% for block in page.body %}
+                    {% if block.block_type == 'block' %}
+                        <div class="rounded-xl border border-blue p-2.5"
+                            x-data="{open: false}">
+                            <div class="text-xl font-bold leading-relaxed tracking-widest text-end">
+                                <div class="flex justify-between items-center">
+                                    <button class="rounded-full px-2 bg-blue text-white"
+                                        @click="open = !open;">
+                                        <span class="sr-only">{% translate 'Open answer'%}</span>
+                                        <div x-show="open">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                            </svg>
+                                        </div>
+                                        <div x-show="!open">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+                                            </svg>
+                                        </div>
+                                    </button>
+                                    <p>{{block.value.question}}</p>
+                                </div>
+                            </div>
+                            <div x-show="open" x-transition class="text-lg mt-2.5 pt-2 border-t border-blue" style="direction: rtl;">
+                                <p>{{block.value.answer|linebreaksbr}}</p>
+                                <br>
+                                <a class="mt-1.5 text-base underline" href="{{block.value.link.url}}">
+                                    {{block.value.link.link_text}}
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                            {% include_block block %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

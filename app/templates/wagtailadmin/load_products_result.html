@@ -1,0 +1,51 @@
+{% extends "wagtailadmin/base.html" %}
+
+{% load i18n %}
+
+{% block titletag %}
+    {% translate 'Multiple Product Loading' as page_text %}
+    {{page_text}} 
+{% endblock %}
+
+{% block extra_js %}
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+{% endblock %}
+
+{% block content %}
+    {% translate 'Multiple Product Loading' as page_text %}
+    {% include "wagtailadmin/shared/header.html" with title=page_text icon="upload" %}
+
+    <div 
+        x-data="{
+            key: '{{key}}',
+            saving_info: 'No information',
+
+            check_status() {
+                fetch('/check-load-products/' + '?key=' + this.key, {method: 'GET'})
+                .then(response => response.json())
+                .then((response) => {
+                    if (response['status'] === 'error') {
+                        this.saving_info = 'ERROR'
+                    }
+
+                    else if (response['status'] === 'progress') {
+                        this.saving_info = response['current'] + ' / ' + response['total'];
+                        setTimeout(() => this.check_status(), 1000);
+                    }
+
+                    else if (response['status'] === 'success') {
+                        this.saving_info = 'all';
+                    }
+                })
+            }
+        }
+        "
+        x-init="setTimeout(() => check_status(), 500)"
+        class="nice-padding">
+        <div class="nice-padding">
+            <h2>{% translate 'Images saved'%}: <span x-html="saving_info"></span></h2>
+            <a class="page404__button button" href="/admin/">Go to Wagtail admin</a>
+        </div>
+    </div>
+
+{% endblock %}

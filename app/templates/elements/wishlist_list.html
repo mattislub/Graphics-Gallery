@@ -1,0 +1,12 @@
+{% load user product %}
+{% get_user_wishlist_images page_number as wishlist_images %}
+{% if wishlist %}
+    {% for wishlist_item in wishlist_images %}
+        {% get_product_type wishlist_item as product_type %}
+        {% if product_type == 'shop.ImageProduct' %}
+            {% render_image_product_preview wishlist_item fixed_height=True %}
+        {% else %}
+            {% render_image_set_product_preview wishlist_item fixed_height=True %}
+        {% endif %}
+    {% endfor %}
+{% endif %}

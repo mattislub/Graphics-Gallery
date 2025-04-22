@@ -1,0 +1,102 @@
+{% extends 'pages/root_page.html' %}
+{% load wagtailimages_tags i18n product search pages product %}
+
+{% block sub_page_content %}
+    {% include 'blocks/search_block.html' with change_url=True %}
+    <div class="mx-6">  
+        {% has_children_image_categories as show_children_categories %}
+        {% if show_children_categories %}
+            <div class="mt-12">
+                <div class="mt-12 flex flex-wrap justify-end gap-5 border-t-2 pt-5 border-blue">
+                    {% get_children_image_categories as children_image_categories %}
+                    {% for children_image_category in children_image_categories %}
+                        {% render_category_preview children_image_category %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    <div class="container grow">
+        <div class="mx-2.5">
+            {# <div id="product-list-container" class="mt-12 columns-2 md:columns-3 lg:columns-4 xl:columns-5"> #}
+            <div id="product-list-container" class="mt-12 flex flex-wrap gap-2.5 sm:gap-5">
+                {% get_filtered_products as page_products %}
+                {% for product in page_products.object_list %}
+                    {% render_image_product product %}
+                {% endfor %}
+            </div>
+            <div class="flex mt-12 flex-wrap gap-5 justify-end">
+                <div class="flex flex-wrap mx-auto gap-5 justify-center">
+                    {% if page_products.has_next %}
+                        <a href="{% change_page_url page_products.next_page_number %}" class="w-52 flex gap-4 items-center justify-between rounded-full font-bold text-lg py-2 px-5 hover:bg-gradient-2 border-2 border-blue disabled:border-slate-500">
+                            <div class="rounded-full py-0.5 px-5 bg-blue text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                                </svg>
+                            </div>
+                            <p>{% translate 'Next' %}</p>
+                        </a>
+                    {% else %}
+                        <div class="w-52 flex gap-4 items-center justify-between rounded-full font-bold text-lg py-2 px-5 border-2 border-slate-400 text-slate-400">
+                            <div class="rounded-full py-0.5 px-5 bg-slate-500 text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                                </svg>
+                            </div>
+                            <p>{% translate 'Next' %}</p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if page_products.has_previous %}
+                        <a href="{% change_page_url page_products.previous_page_number %}" class="w-52 flex gap-4 items-center justify-between rounded-full font-bold text-lg py-2 px-5 hover:bg-gradient-2 border-2 border-blue">
+                            <p>{% translate 'Previous' %}</p>
+                            <div class="rounded-full py-0.5 px-5 bg-blue text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </div>
+                        </a>
+                    {% else %}
+                        <div class="w-52 flex gap-4 items-center justify-between rounded-full font-bold text-lg py-2 px-5 border-2 border-slate-400 text-slate-400">
+                            <p>{% translate 'Previous' %}</p>
+                            <div class="rounded-full py-0.5 px-5 bg-slate-500 text-white">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                                </svg>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="flex text-xl items-center">
+                    <p>{% translate 'from' %} {{page_products.paginator.num_pages}}</p>
+                    <div class=" ml-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                        </svg>      
+                    </div>                    
+                    <div class="rounded-full border-2 px-4 border-blue font-bold my-auto">
+                        <p>{{page_products.number}}</p>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="relevant-tags" class="mt-12 container">
+        <div class="mx-2.5">
+            <h2 class="text-blue text-end text-4xl sm:text-7xl leading-none font-light flex items-center justify-end gap-2.5">
+                {% translate 'Relevant tags' %}
+            </h2>
+            <div class="mt-12 flex flex-wrap gap-2.5 sm:gap-5" style="direction: rtl;">
+                {% get_products_tags page_products.object_list as tags_list %}
+                {% for tag in tags_list %}
+                    <a href="{% get_url_by_page_name 'images' %}?search={{tag.name}}" class="border border-blue text-blue px-2 py-1 rounded-full hover:bg-blue hover:bg-opacity-30 hover:text-white hover:border-transparent">{{tag.name}}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

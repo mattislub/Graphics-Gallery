@@ -1,0 +1,7 @@
+{% load wagtailimages_tags i18n pages %}
+<div class="flex flex-col items-center group cursor-pointer" onclick="updateURLParameter('image-category', '{{category.slug}}')">
+    <div class="border-2 border-white rounded-full group-hover:border-blue">
+        {% image category.small_preview_image fill-200x200 class="w-40 rounded-full" %}
+    </div>
+    <p class="text-xl text-blue font-normal">{{category.name}}</p>
+</div>

@@ -1,0 +1,56 @@
+{% load i18n static pages wagtailcore_tags %}
+{% wagtail_site as current_site %}
+
+<table style="margin: 0 auto; color: #030339; max-width: 400px; padding: 10px; border-radius: 20px; background-color: #C6C6D1;">
+    <tr>
+        <td>
+            <table style="margin-left: auto; color: #030339; font-size: 30px; font-weight: 900;">
+                <tr>
+                    <td>{{current_site.site_name}}</td>
+                    <td>
+                        <img style="height: 60px;" src="{{current_site.root_url}}/static/static/media/logo.png" alt="{{ current_site.site_name }}" />
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding-top: 20px;">
+            <div style="padding: 10px; border-radius: 20px; text-align: center; font-weight: 900; font-size: 36px;">
+                {% translate 'Your verification code' %}
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding-top: 20px; text-align: right; font-size: 20px;">
+            {% blocktranslate with site_name=current_site.site_name %}Someone provided this email address to register for an account on {{site_name}}.{% endblocktranslate %}
+        </td>
+    </tr>
+    <tr>
+        <td style="padding-top: 20px;" align="center">
+            <div style="display: inline-block; padding: 10px; border-radius: 20px; background-color: #030339; color: white; text-align: center; font-weight: 900; font-size: 36px; letter-spacing: 5px;">
+                {{verification_code}}
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding-top: 20px; text-align: right; font-size: 20px;">
+            {% blocktranslate with site_name=current_site.site_name %}
+                When prompted, enter this code to confirm that you have access to the specified email address.<br><br>
+                If you received this message by mistake, please ignore it.<br><br>
+                Sincerely, {{site_name}}.
+            {% endblocktranslate %}
+        </td>
+    </tr>
+</table>
+<table style="margin: 0 auto; color: #646484; width: 400px;">
+    <tr>
+        <td style="padding-top: 10px; text-align: right; font-size: 16px;">
+            {% get_url_by_page_name 'contact-us' as url%}
+            {% blocktranslate with site_name=current_site.site_name url=url %}
+                Do not reply to this message.<br>
+                If you have any questions, please <a href="{{url}}">contact us</a>. 
+            {% endblocktranslate %}
+        </td>
+    </tr>
+</table>

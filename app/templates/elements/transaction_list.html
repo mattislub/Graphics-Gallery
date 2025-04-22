@@ -1,0 +1,18 @@
+{% load user %}
+{% get_user_orders page_number as user_orders %}
+{% if user_orders %}
+    {% for user_order in user_orders %}
+    <div class="grid grid-cols-6 sm:grid-cols-7 text-end text-sm font-normal leading-tight gap-1 border-b last:border-none py-2">
+        <p class="col-span-4">
+            {% for note in user_order.notes.all %}
+                {% if note.public %}
+                    {{ note.message | linebreaksbr }}
+                {% endif %}
+            {% endfor %}
+        </p>
+        <p>{{user_order.total}} ₪</p>
+        <p class="hidden sm:block">{{user_order.date_created | date:"m/d/Y" }}</p>
+        <p>{{user_order.ref}}</p>
+    </div>
+    {% endfor %}
+{% endif %}

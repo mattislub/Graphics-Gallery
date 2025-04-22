@@ -1,0 +1,75 @@
+{% extends 'pages/root_page.html' %}
+{% load i18n wagtailcore_tags product %}
+
+{% block sub_page_content %}
+<div class="max-w-5xl grow mt-12 mx-auto text-blue">
+    <div class="mx-2.5">
+        <div class="flex gap-2.5 mt-12 justify-center items-center">
+            <div class="border-2 border-blue rounded-full p-1 hidden sm:block">
+                <svg width="53" height="13" viewBox="0 0 53 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2 6.5C10.1667 0.5 18.3333 0.5 26.5 6.5C34.6667 12.5 42.8333 12.5 51 6.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h1 class="text-4xl md:text-7xl font-black text-center ">{{page.title}}</h1>
+            <div class="border-2 border-blue rounded-full p-1 hidden sm:block">
+                <svg width="53" height="13" viewBox="0 0 53 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2 6.5C10.1667 0.5 18.3333 0.5 26.5 6.5C34.6667 12.5 42.8333 12.5 51 6.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </div>
+        <h2 class="text-xl font-normal text-center mt-1.5 leading-5">{{page.sub_title}}</h2>
+        <div class="flex flex-col max-w-7xl gap-5 w-full mx-auto mt-16">
+            <div class="flex gap-2 md:gap-8 bg-blue bg-opacity-10 rounded-3xl px-6 py-9 w-full">
+                <div class="w-full">
+                    <h2 class="text-xl md:text-4xl font-bold text-end">{{page.body.first_block_by_name.cardpayment.value.title}}</h2>
+                    <div class="text-lg mt-2.5 text-end">{{page.body.first_block_by_name.cardpayment.value.text}}</div>
+                </div>
+                <div class="w-fit border-2 border-blue text-4xl md:text-7xl p-4 md:p-6 rounded-2xl md:rounded-3xl self-start">1</div>
+            </div>
+            <div class="bg-blue bg-opacity-10 rounded-3xl px-6 py-9 w-full">
+                <div class="flex gap-2 md:gap-8 ">
+                    <div class="w-full">
+                        <h2 class="text-xl md:text-4xl font-bold text-end">{{page.body.first_block_by_name.balancepayment.value.title}}</h2>
+                        <div class="text-lg mt-2.5 text-end" >{{page.body.first_block_by_name.balancepayment.value.text}}</div>
+                    </div>
+                    <div class="w-fit border-2 border-blue text-4xl md:text-7xl p-4 md:p-6 rounded-2xl md:rounded-3xl self-start">2</div>
+                </div>
+                <div class="columns-1 md:columns-2 mt-12 gap-5">
+                    {% get_balance_products as balance_products %}
+                    {% for balance_product in balance_products %}
+                        <div class="mb-5">
+                            {% render_balance_product balance_product %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="bg-blue bg-opacity-10 rounded-3xl px-6 py-9 w-full">
+                <div class="flex gap-2 md:gap-8 ">
+                    <div class="w-full">
+                        <h2 class="text-xl md:text-4xl font-bold text-end">{{page.body.first_block_by_name.subscriptions.value.title}}</h2>
+                        <div class="text-lg mt-2.5 text-end" >{{page.body.first_block_by_name.subscriptions.value.text}}</div>
+                    </div>
+                    <div class="w-fit border-2 border-blue text-4xl md:text-7xl p-4 md:p-6 rounded-2xl md:rounded-3xl self-start">3</div>
+                </div>
+                <div class="columns-1 md:columns-2 mt-12 gap-5">
+                    {% get_subscription_plans as subscription_plans %}
+                    {% for subscription_plan in subscription_plans %}
+                        <div class="mb-5">
+                            {% render_subscription_plan subscription_plan %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="/" class="mt-12 mx-auto w-fit flex gap-4 items-center rounded-full font-bold text-lg border-2 border-blue bg-blue text-white py-2 px-5 hover:bg-gradient-2 group" role="link" type="submit">
+        <div class="rounded-full border-2 py-0.5 px-5 bg-blue border-white group-hover:border-blue">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+        </div>
+        {% translate 'To home page' %}
+    </a>
+</div>
+{% endblock %}

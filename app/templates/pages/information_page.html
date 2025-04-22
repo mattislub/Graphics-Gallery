@@ -1,0 +1,26 @@
+{% extends 'pages/root_page.html' %}
+{% load i18n wagtailimages_tags wagtailcore_tags %}
+
+{% block sub_page_content %}
+<div class="container grow mt-12 text-blue">
+    <div class="mx-2.5">
+        {% image page.image original as image %}
+        <img class="mx-auto" src="{{image.url}}" alt="faq">
+        <h1 class="text-4xl font-black text-center mt-12 leading-9">{{page.title}}</h1>
+        <div class="max-w-4xl flex flex-col mt-12 font-normal text-lg leading-5 mx-auto" style="direction: rtl; list-style: decimal !important;">
+            {% for block in page.body %}
+                {% include_block block %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <a href="/" class="mt-12 mx-auto w-fit flex gap-4 items-center rounded-full font-bold text-lg border-2 border-blue bg-blue text-white py-2 px-5 hover:bg-gradient-2 group" role="link" type="submit">
+        <div class="rounded-full border-2 py-0.5 px-5 bg-blue border-white group-hover:border-blue">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+        </div>
+        {% translate 'To home page' %}
+    </a>
+</div>
+{% endblock %}

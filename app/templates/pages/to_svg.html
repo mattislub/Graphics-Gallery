@@ -1,0 +1,321 @@
+{% extends 'pages/root_page.html' %}
+{% load i18n %}
+
+{% block sub_page_content %}
+    <div class="container grow mt-12 text-blue">
+        <form 
+            x-data="{
+                presets: {
+                    'B&W': {
+                        'color_mode': 'binary',
+                        'mode': 'spline',
+                        'filter_speckle': '4',
+                        'color_precision': '6',
+                        'layer_difference': '16',
+                        'corner_threshold': '60',
+                        'length_threshold': '4.0',
+                        'splice_threshold': '45',
+                        'path_precision': '2'
+                    },
+                    'Poster': {
+                        'color_mode': 'color',
+                        'mode': 'spline',
+                        'filter_speckle': '4',
+                        'color_precision': '8',
+                        'layer_difference': '16',
+                        'corner_threshold': '60',
+                        'length_threshold': '4.0',
+                        'splice_threshold': '45',
+                        'path_precision': '2'
+                    },
+                    'Photo': {
+                        'color_mode': 'color',
+                        'mode': 'spline',
+                        'filter_speckle': '10',
+                        'color_precision': '8',
+                        'layer_difference': '48',
+                        'corner_threshold': '180',
+                        'length_threshold': '4.0',
+                        'splice_threshold': '45',
+                        'path_precision': '2'
+                    }
+                },
+
+                color_mode: '{{form.color_mode.value}}',
+                mode: '{{form.mode.value}}',
+                filter_speckle: '{{form.filter_speckle.value}}',
+                color_precision: '{{form.color_precision.value}}',
+                layer_difference: '{{form.layer_difference.value}}',
+                corner_threshold: '{{form.corner_threshold.value}}',
+                length_threshold: '{{form.length_threshold.value}}',
+                splice_threshold: '{{form.splice_threshold.value}}',
+                path_precision: '{{form.path_precision.value}}',
+
+                set_preset(name) {
+                    this.color_mode = this.presets[name]['color_mode'];
+                    this.mode = this.presets[name]['mode'];
+                    this.filter_speckle = this.presets[name]['filter_speckle'];
+                    this.color_precision = this.presets[name]['color_precision'];
+                    this.layer_difference = this.presets[name]['layer_difference'];
+                    this.corner_threshold = this.presets[name]['corner_threshold'];
+                    this.length_threshold = this.presets[name]['length_threshold'];
+                    this.splice_threshold = this.presets[name]['splice_threshold'];
+                    this.path_precision = this.presets[name]['path_precision'];
+                }
+            }"
+            method="POST"
+            enctype="multipart/form-data"
+            class="mx-2.5 flex gap-2.5 flex-wrap sm:flex-nowrap">
+            {% csrf_token %}
+            {{form.file_path}}
+            <div id="drop-area" class="bg-blue bg-opacity-10 basis-full sm:basis-3/4 rounded-2xl min-h-40 flex justify-center relative bg-contain bg-center bg-no-repeat">
+                <div id="drop-area-text" class=" {% if key %} hidden {% endif %} self-center w-72 h-40 text-center leading-[10rem] border-dashed border-blue border-2 rounded-2xl cursor-pointer">
+                     <p>{{form.file.label}}</p>
+                     <p class="text-xs text-center text-red-500">
+                        {% for message in messages %}
+                            {{message}}
+                        {% endfor %}
+                    </p>
+                </div>
+                <span class="absolute top-1/2 left-1/2 -translate-x-1/2 opacity-0 -z-50">{{form.file}}</span>
+                <div id="to-svg-animation" role="status" class="{% if not key %} hidden {% else %} flex {% endif %} w-fit h-fit flex-col gap-2.5 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                    <span class="inline-block h-20 w-20 animate-spin text-blue rounded-full border-8 border-solid border-current border-e-transparent align-[-0.125em] text-surface motion-reduce:animate-[spin_1.5s_linear_infinite]"></span>
+                    <p>Loading...</p>
+                  </span>
+                </div>
+            </div>
+            <div class="flex flex-col p-5 rounded-2xl bg-blue bg-opacity-10 basis-full sm:basis-1/4 gap-2.5">
+                <h1 class="text-2xl font-bold text-end">
+                    {% translate 'Convert settings' %}
+                </h1>
+
+                <div x-data="popup"
+                    @keydown.escape.prevent.stop="close($refs.button)"
+                    @focusin.window="!$refs.popup.contains($event.target) && close()"
+                    x-id="['popup-button']"
+                    class="relative self-end">
+                    <button type="button"
+                        x-ref="button"
+                        @click="toggle()"
+                        :aria-expanded="open"
+                        :aria-controls="$id('popup-button')"
+                        class="flex rounded-full border-2 border-blue px-2 py-1 items-center gap-1 cursor-pointer">
+                        <div class="bg-blue text-white rounded-full mr-2.5">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                <path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+
+                        <p>{% translate 'Presets'%}</p>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
+                        </svg>
+
+                    </button>
+
+                    <div x-ref="popup"
+                        x-show="open"
+                        @click.outside="close($refs.button);"
+                        :id="$id('popup-button')"
+                        role="listbox"
+                        class="absolute top-0 right-0 z-50 min-w-full px-2 py-1 rounded-2xl bg-white border-2 border-blue text-nowrap">
+                        <ul class="w-full flex flex-col items-end">
+                            <li @click="toggle();"
+                                class="flex items-center gap-1 cursor-pointer pb-1">
+                                <div class="bg-blue text-white rounded-full mr-2.5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+                                        <path fill-rule="evenodd" d="M9.47 6.47a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 1 1-1.06 1.06L10 8.06l-3.72 3.72a.75.75 0 0 1-1.06-1.06l4.25-4.25Z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+            
+                                {% translate 'Presets'%}
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 13.5V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m12-3V3.75m0 9.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 3.75V16.5m-6-9V3.75m0 3.75a1.5 1.5 0 0 1 0 3m0-3a1.5 1.5 0 0 0 0 3m0 9.75V10.5" />
+                                </svg>
+                            </li>
+                            <li @click="set_preset('B&W'); toggle();"
+                                role="option"
+                                class="w-full border-y py-1 px-2 text-end cursor-pointer -mb-[1px]" >{% translate 'B&W' %}</li>
+                            <li @click="set_preset('Poster'); toggle();"
+                                role="option"
+                                class="w-full border-y py-1 px-2 text-end cursor-pointer -mb-[1px]">{% translate 'Poster' %}</li>
+                            <li @click="set_preset('Photo'); toggle();"
+                                role="option"
+                                class="w-full border-y py-1 px-2 text-end cursor-pointer -mb-[1px]">{% translate 'Photo' %}</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div style="direction: rtl;">
+                    <p class="text-lg">{{form.color_mode.label}}</p>
+                    <div class="flex gap-2.5 mt-2.5">
+                        {% for radio in form.color_mode %}
+                            <label for="{{radio.id_for_label}}" class="p-2.5 bg-white rounded-lg">
+                                {{radio.tag}}
+                               {{radio.choice_label}}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div style="direction: rtl;">
+                    <p class="text-lg">{{form.mode.label}}</p>
+                    <div class="flex gap-2.5 mt-2.5">
+                        {% for radio in form.mode %}
+                            <label for="{{radio.id_for_label}}" class="p-2.5 bg-white rounded-lg">
+                                {{radio.tag}}
+                               {{radio.choice_label}}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div style="direction: rtl;">
+                    <p class="text-lg">{{form.filter_speckle.label}}</p>
+                    <div class="flex gap-2.5"><p class="w-8" x-text="filter_speckle">{{form.filter_speckle.value}}</p>{{form.filter_speckle}}</div>
+                </div>
+                <div style="direction: rtl;">
+                    <p class="text-lg">{{form.color_precision.label}}</p>
+                    <div class="flex gap-2.5"><p class="w-8" x-text="color_precision">{{form.color_precision.value}}</p>{{form.color_precision}}</div>
+                </div>
+                <div style="direction: rtl;">
+                    <p class="text-lg">{{form.layer_difference.label}}</p>
+                    <div class="flex gap-2.5"><p class="w-8" x-text="layer_difference">{{form.layer_difference.value}}</p>{{form.layer_difference}}</div>
+                </div>
+
+                <div style="direction: rtl;">
+                    <p class="text-lg">{{form.corner_threshold.label}}</p>
+                    <div class="flex gap-2.5"><p class="w-8" x-text="corner_threshold">{{form.corner_threshold.value}}</p>{{form.corner_threshold}}</div>
+                </div>
+
+                <div style="direction: rtl;">
+                    <p class="text-lg">{{form.length_threshold.label}}</p>
+                    <div class="flex gap-2.5"><p class="w-8" x-text="length_threshold">{{form.length_threshold.value}}</p>{{form.length_threshold}}</div>
+                </div>
+
+                <div style="direction: rtl;">
+                    <p class="text-lg">{{form.splice_threshold.label}}</p>
+                    <div class="flex gap-2.5"><p class="w-8" x-text="splice_threshold">{{form.splice_threshold.value}}</p>{{form.splice_threshold}}</div>
+                </div>
+
+                <div style="direction: rtl;" class="hidden">
+                    <p class="text-lg">{{form.path_precision.label}}</p>
+                    <div class="flex gap-2.5"><p class="w-8" x-text="path_precision">{{form.path_precision.value}}</p>{{form.path_precision}}</div>
+                </div>
+                
+                <button type="submit" class="flex gap-4 items-center rounded-full font-bold text-lg border-2 border-blue bg-blue text-white py-2 px-3 hover:bg-gradient-2 group mx-auto">
+                                                        
+                    <div class="rounded-full border-2 py-0.5 px-5 bg-blue border-white group-hover:border-blue">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                        </svg>
+                    </div>
+
+                    {% translate 'Convert' %}
+                </button>
+
+                <a href="" id="to-svg-download" class="hidden flex gap-4 items-center rounded-full font-bold text-lg border-2 border-blue bg-white py-2 px-3 hover:bg-gradient-2 group mx-auto">
+                                                        
+                    <div class="rounded-full border-2 py-0.5 px-5 bg-blue border-white text-white group-hover:border-blue">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </div>
+
+                    {% translate 'Download' %}
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const dropArea = document.getElementById('drop-area');
+        const dropAreaText = document.getElementById('drop-area-text');
+        const fileInput = document.getElementById('id_file');
+
+        dropArea.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', function() {
+            const file = fileInput.files[0];
+            handleFiles(file);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        dropArea.addEventListener('dragover', preventDefaults);
+        dropArea.addEventListener('dragenter', preventDefaults);
+        dropArea.addEventListener('dragleave', preventDefaults);
+
+        dropArea.addEventListener('drop', handleDrop);
+
+        function handleDrop(e) {
+            e.preventDefault();
+
+            const files = e.dataTransfer.files;
+
+            if (files.length) {
+                fileInput.file = files[0];
+                handleFiles(files[0]);
+            }
+        }
+
+        function handleFiles(file) {
+           
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+
+            reader.onloadend = function (e) {
+                
+                if (isValidFileType(file)) {
+                    dropArea.style.backgroundImage = 'url(' + e.target.result + ')';
+                    if (!dropAreaText.classList.contains('hidden')) dropAreaText.classList.add('hidden');
+                }
+            };
+        }
+
+        function isValidFileType(file) {
+            const allowedTypes = ['image/jpg', 'image/jpeg', 'image/png', 'image/gif'];
+            return allowedTypes.includes(file.type);
+        }
+
+        dropArea.addEventListener('dragover', () => {
+            dropAreaText.classList.add('bg-opacity-30');
+            dropAreaText.classList.add('bg-blue');
+        });
+
+        dropArea.addEventListener('dragleave', () => {
+            dropAreaText.classList.remove('bg-opacity-30');
+            dropAreaText.classList.remove('bg-blue');
+        });
+
+        function check_status(key) {
+
+            fetch('/get-svg-conversion-status/' + key + '/', {})
+            .then(response => response.text())
+            .then((response) => {
+                if (response === 'SUCCESS') {
+                    document.getElementById('drop-area').style.backgroundImage = 'url(/static/media/to_svg/' + key + '.svg)';
+                    document.getElementById('to-svg-download').href = '/download-svg/' + key + '/';
+                    document.getElementById('to-svg-download').classList.remove('hidden');
+                    if (!dropAreaText.classList.contains('hidden')) dropAreaText.classList.add('hidden');
+                    if (!document.getElementById('to-svg-animation').classList.contains('hidden')) document.getElementById('to-svg-animation').classList.add('hidden');
+                }
+                else if (response === 'FAILURE') {
+                    alert('Error')
+                }
+                else {setTimeout(check_status, 5000, key);}
+            })
+        }
+
+        {% if key %}
+            setTimeout(check_status, 5000, '{{key}}');
+        {% endif %}
+
+    </script>
+
+{% endblock %}  

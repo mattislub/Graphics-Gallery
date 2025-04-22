@@ -1,0 +1,133 @@
+{% extends 'pages/root_page.html' %}
+{% load i18n wagtailiconchooser_tags pages basket %}
+
+{% block sub_page_content %}
+{% get_basket as basket %}
+    <div class="container grow mt-12 text-blue">
+        <div class="mx-2.5">
+            <div class="flex gap-2.5 mt-12 justify-center items-center">
+                <div class="border-2 border-blue rounded-full p-1">
+                    <svg width="53" height="13" viewBox="0 0 53 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 6.5C10.1667 0.5 18.3333 0.5 26.5 6.5C34.6667 12.5 42.8333 12.5 51 6.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1 class="text-4xl md:text-7xl font-black text-center ">{{page.title}}</h1>
+                <div class="border-2 border-blue rounded-full p-1">
+                    <svg width="53" height="13" viewBox="0 0 53 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 6.5C10.1667 0.5 18.3333 0.5 26.5 6.5C34.6667 12.5 42.8333 12.5 51 6.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="flex mt-12 flex-wrap w-full">
+                <div class="basis-full md:basis-1/3">
+                    <div class="rounded-lg bg-blue bg-opacity-10 p-5 mr-0 md:mr-5">
+                        <h2 class="font-bold text-4xl leading-tight tracking-widest text-end">{% translate 'Payment details' %}</h2>
+                        <form action="/api/checkout/" method="POST" enctype="multipart/form-data" class="flex flex-col gap-2.5 mt-5 leading-7 tracking-wide"
+                            x-data="{
+                                error_text: '',
+
+                                make_purchase() {
+                                    if (!$el.checkValidity()) {
+                                        $el.reportValidity();
+                                        return;
+                                    }
+
+                                    setCookieObject('email', $refs.email.value);
+
+                                    let formData = new FormData($el);
+
+                                    fetch($el.action, {
+                                        method: $el.method,
+                                        body: formData,
+                                    })
+                                    .then(response => {
+                                        let status = response.status;
+                                        return response.json().then(data => {
+                                            return { status: status, data: data };
+                                        });
+                                    })
+                                    .then(result => {
+                                        if (result['status'] === 201) {
+                                            window.open(result['data']['Location'], '_blank');
+                                            window.location.reload();
+                                        }
+                                        else this.error_text = result['data']['detail']
+                                    })
+                                }
+                            }">
+                            {% csrf_token %}
+
+                            <input type="hidden" name="shipping_address">
+                            <input type="hidden" name="billing_address">
+                            <input type="hidden" name="extra" value="null">
+
+                            {% if user.is_authenticated %}
+                                <input x-ref="email" type="hidden" name="email" value="{{user.email}}" required>
+                                <label class="p-2.5 bg-white rounded-lg" for="balance-payment" style="direction: rtl;">
+                                    <input class="ml-2.5" type="radio" name="payment_method" id="balance-payment" value="balance-payment" checked>
+                                    {% translate 'Pay from balance' %}
+                                </label>
+                            {% else %}
+                                <input x-ref="email" class="p-2.5 bg-white rounded-lg border-0" type="email" name="email" placeholder="{% translate 'Email'%}" required style="direction: rtl;">
+                            {% endif %}
+
+                            <label class="p-2.5 bg-white rounded-lg" for="zcredit-payment" style="direction: rtl;">
+                                <input class="ml-2.5" type="radio" name="payment_method" id="zcredit-payment" value="zcredit-payment" {% if not user.is_authenticated %} checked {% endif %}>
+                                {% translate 'Pay by card' %}
+                            </label>
+
+                            <p class="font-bold text-center text-3xl text-orange mt-2.5">{{basket.total}}₪</p>
+                            <div x-html="error_text" class="text-xs text-end text-red-500"></div>
+                            <button
+                                type="button"
+                                @click="make_purchase()"
+                                class="flex gap-4 items-center rounded-full font-bold text-lg border-2 border-blue bg-blue text-white py-2 px-5 hover:bg-gradient-2 group mx-auto mt-2.5">
+                                <div class="rounded-full border-2 py-0.5 px-5 bg-blue border-white group-hover:border-blue">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                    </svg>
+                                </div>
+                                {% translate 'Pay' %}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="basis-full order-first mb-5 md:basis-2/3 md:order-last md:mb-0 flex flex-col gap-2.5">
+                    {% for basket_item in basket.items %}
+                        <div class="flex gap-2.5 sm:gap-5 border-t last:border-b py-2.5">
+                            <div class="flex items-start gap-5">
+                                <div class="flex flex-col h-full items-start">
+                                    {% if basket_item.product.premium %}
+                                        <div class="font-bold bg-green rounded-full flex items-center gap-2 py-1 px-3 eading-none">
+                                            <p>{% translate 'Premium' %}</p>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 0 1 1.04 0l2.125 5.111a.563.563 0 0 0 .475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 0 0-.182.557l1.285 5.385a.562.562 0 0 1-.84.61l-4.725-2.885a.562.562 0 0 0-.586 0L6.982 20.54a.562.562 0 0 1-.84-.61l1.285-5.386a.562.562 0 0 0-.182-.557l-4.204-3.602a.562.562 0 0 1 .321-.988l5.518-.442a.563.563 0 0 0 .475-.345L11.48 3.5Z" />
+                                            </svg>
+                                        </div>
+                                    {% endif %}
+                                    <p class="mt-auto text-base font-bold text-center text-orange">{{basket_item.product.price}} ₪</p>
+                                    <button class="mt-auto" onclick="delete_from_basket('{{basket_item.ref}}', '{{basket_item.product.code}}')">
+                                        <span class="sr-only">{% translate 'Remove item' %}</span>
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 stroke-gray-400 hover:stroke-gray-700">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="ml-auto">
+                                <h3 class="text-lg leading-tight font-normal tracking-widest text-end">{{basket_item.product.name | truncatechars:20 }}</h3>
+                                <p class="leading-tight text-end mt-2.5">{{basket_item.product.code}}</p>
+                            </div>
+                            <img class="object-fit h-16 sm:h-32 self-center rounded-xl" src="{{basket_item.product.preview_image_url}}" alt="{{basket_item.product.name}}">
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if page.similar_products %}
+        {% render_similar_products page.similar_products True %}
+    {% endif %}
+
+{% endblock %}

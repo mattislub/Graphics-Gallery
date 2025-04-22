@@ -1,0 +1,180 @@
+{% extends "wagtailadmin/base.html" %}
+{% load i18n %}
+
+
+
+{% block titletag %}
+    {% translate 'Multiple Product Loading' as page_text %}
+    {{page_text}} 
+{% endblock %}
+{% block extra_js %}
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+{% endblock %}
+
+{% block extra_css%}
+    <style>
+        .pagination_button {
+            background: transparent;
+            color: var(--w-color-text-link-default);
+        }
+
+        .pagination_button:disabled {
+            color: var(--w-color-text-link-disabled);
+            cursor: not-allowed;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+
+    {% translate 'Multiple Product Loading' as page_text %}
+    {% include "wagtailadmin/shared/header.html" with title=page_text icon="upload" %}
+
+    <div class="main-content">
+        <div class="row">
+            <form
+                x-data="{
+                    key: '{{key}}',
+                    page_number: {{page.number}},
+                    total_pages: {{page.paginator.num_pages}},
+                    need_reload: {% if need_reload %}true{% else %}false{% endif %},
+                    loading_info: 'No information',
+
+                    submit_form(page) {
+                        console.log(page);
+                        this.$refs.page.value = page;
+                        this.$refs.form.submit();
+                    },
+
+                    check_status() {
+                        fetch('/check-load-products/' + '?key=' + this.key, {method: 'GET'})
+                        .then(response => response.json())
+                        .then((response) => {
+                            if (response['status'] === 'error') {
+                                window.location = '/admin/shop/load-products/';
+                            }
+
+                            else if (response['status'] === 'progress') {
+                                if (this.page_number === response['current'] && this.need_reload) window.location.reload();
+                                if ('previous' in $refs) $refs.previous.removeAttribute('disabled');
+                                if (this.page_number + 1 <= response['current'] && 'next' in $refs) $refs.next.removeAttribute('disabled');
+                                this.loading_info = response['current'] + ' / ' + response['total'];
+
+                                setTimeout(() => this.check_status(), 1000);
+                            }
+
+                            else if (response['status'] === 'success') {
+                                if (this.need_reload) window.location.reload();
+                                if ('previous' in $refs) $refs.previous.removeAttribute('disabled');
+                                if ('next' in $refs) $refs.next.removeAttribute('disabled');
+                                if ('submit' in $refs) $refs.submit.removeAttribute('disabled');
+                                this.loading_info = 'all';
+                            }
+                        })
+                    }
+                }"
+                x-init="setTimeout(() => check_status(), 500)"
+                method="POST"
+                x-ref="form"
+                enctype="multipart/form-data"
+                class="result-list col">
+                <div class="nice-padding">
+                    <h2>{% translate 'Pages ready'%}: <span x-html="loading_info"></span></h2>
+                </div>
+                {% csrf_token %}
+                <input x-ref="page" type="hidden" name="next_page">
+                <input type="hidden" name="current_page" value="{{page.number}}">
+                <table class="listing">
+                    <thead>
+                        <tr>
+                            <th>Preview</th>
+                            <th>Name & Price & Selling option</th>
+                            <th>Image orientation & Category</th>
+                            <th>Tags</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for image in page.object_list %}
+                            <tr>
+                                
+                                <td>
+                                    <img src="{{image.url}}" alt="{{image.name}}" style="width:150px;">
+                                </td>
+                                <td>
+                                    <div>
+                                        <input name="name_{{image.id}}" type="text" value="{{image.name}}">
+                                    </div>
+                                    <div style="margin-top: 10px;">
+                                        <input name="price_{{image.id}}" type="number" value="{{image.price}}">
+                                    </div>
+                                    <div style="margin-top: 10px;">
+                                        <select style="width: 100%;" name="selling_option_{{image.id}}">
+                                            <option value="usual" {% if image.selling_option == 'usual' %} selected {% endif %}>{% translate 'Usual' %}</option>
+                                            <option value="premium" {% if image.selling_option == 'premium' %} selected {% endif %}>{% translate 'Premium' %}</option>
+                                            <option value="subscription" {% if image.selling_option == 'subscription' %} selected {% endif %}>{% translate 'Subscription' %}</option>
+                                        </select>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <select style="width: 100%;" name="orientation_{{image.id}}">
+                                            {% for orientation in orientations %}
+                                                <option value="{{orientation.slug}}" {% if image.orientation == orientation.slug %} selected {% endif %}>{{orientation.name}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div style="margin-top: 60px;">
+                                        <select style="width: 100%;" name="category_{{image.id}}">
+                                            {% for category in categories %}
+                                                <option value="{{category.slug}}" {% if image.category == category.slug %} selected {% endif %}>{{category.name}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </td>
+                                <td><textarea name="tags_{{image.id}}" rows="4" cols="20">{{image.tags}}</textarea></td>
+                                <td><textarea name="description_{{image.id}}" rows="4" cols="20">{{image.description}}</textarea></td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div class="nice-padding">
+                    <nav class="pagination" aria-label="Pagination">
+                        <p>{% translate 'Page' %} {{page.number}} {% translate 'of' %} {{page.paginator.num_pages}}.</p>
+                        {% if page.number == page.paginator.num_pages %}
+                            <button x-ref="submit" disabled class="button"> {% translate 'Save'%} </button>
+                        {% endif %}
+                        <ul>
+                            <li class="prev">
+                                {% if page.has_previous %}
+                                    <button
+                                        disabled
+                                        x-ref="previous"
+                                        type="button"
+                                        @click="submit_form({{page.previous_page_number}});"
+                                        class="pagination_button">
+                                        <svg class="icon icon-arrow-left default" aria-hidden="true"><use href="#icon-arrow-left"></use></svg>
+                                        {% translate 'Previous' %}
+                                    </button>
+                                {% endif %}
+                            </li>
+                            <li class="next">
+                                {% if page.has_next%}
+                                    <button
+                                        disabled
+                                        type="button"
+                                        x-ref="next"
+                                        @click="submit_form({{page.next_page_number}});"
+                                        class="pagination_button">
+                                        {% translate 'Next' %}
+                                        <svg class="icon icon-arrow-right default" aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
+                                    </button>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

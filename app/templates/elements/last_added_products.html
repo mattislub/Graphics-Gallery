@@ -1,0 +1,34 @@
+{% load i18n product %}
+<style>
+    .pulse {
+        animation: my-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes my-pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: .0;
+        }
+    }
+</style>
+<div id="last-added-products" class="mt-12">
+    <div class="container">
+        <h2 class="mx-2.5 text-blue text-end text-4xl sm:text-7xl leading-none font-bold flex items-center justify-end gap-2.5">
+            <span class="text-green border-2 border-blue rounded-full py-1 px-5 pulse">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+            </span>
+            {{last_added_products.title}}
+        </h2>
+    </div>
+    <div class="overflow-x-scroll">
+        <div class="mt-12 flex gap-2.5 sm:gap-5 w-max pb-2.5 ml-auto" style="direction: rtl;">
+            {% get_last_added_products last_added_products.filters last_added_products.display as last_added_products_list %}
+            {% for last_added_product in last_added_products_list %}
+                {% render_image_product last_added_product reload_with_add_to_basket %}
+            {% endfor %}
+        </div>
+    </div>
+</div>

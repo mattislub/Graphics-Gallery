@@ -1,0 +1,73 @@
+{% extends 'pages/root_page.html' %}
+{% load i18n static user pages product widget_tweaks %}
+
+{% block sub_page_content %}
+    <div class="mt-12 grow container">
+        <div class="mx-2.5">
+            {% include 'blocks/user_panel_block.html' %}
+        </div>
+        <div id="wishlist-list-container" class="mt-12 flex flex-wrap gap-2.5 sm:gap-5" style="direction: rtl;">
+            {% get_filtered_user_purchased_products as page_user_purchased_products %}
+            {% for product in page_user_purchased_products.object_list %}
+                {% render_image_product product %}
+            {% endfor %}
+        </div>
+        <div class="flex mt-12 flex-wrap gap-5 justify-end">
+            <div class="flex flex-wrap mx-auto gap-5 justify-center">
+                {% if page_user_purchased_products.has_next %}
+                    <a href="{% change_page_url page_user_purchased_products.next_page_number %}" class="w-52 flex gap-4 items-center justify-between rounded-full font-bold text-lg py-2 px-5 hover:bg-gradient-2 border-2 border-blue disabled:border-slate-500">
+                        <div class="rounded-full py-0.5 px-5 bg-blue text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                            </svg>
+                        </div>
+                        <p>{% translate 'Next' %}</p>
+                    </a>
+                {% else %}
+                <div class="w-52 flex gap-4 items-center justify-between rounded-full font-bold text-lg py-2 px-5 border-2 border-slate-400 text-slate-400">
+                    <div class="rounded-full py-0.5 px-5 bg-slate-500 text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                        </svg>
+                    </div>
+                    <p>{% translate 'Next' %}</p>
+                </div>
+                {% endif %}
+                
+                {% if page_user_purchased_products.has_previous %}
+                    <a href="{% change_page_url page_user_purchased_products.previous_page_number %}" class="w-52 flex gap-4 items-center justify-between rounded-full font-bold text-lg py-2 px-5 hover:bg-gradient-2 border-2 border-blue">
+                        <p>{% translate 'Previous' %}</p>
+                        <div class="rounded-full py-0.5 px-5 bg-blue text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                            </svg>
+                        </div>
+                    </a>
+                {% else %}
+                    <div class="w-52 flex gap-4 items-center justify-between rounded-full font-bold text-lg py-2 px-5 border-2 border-slate-400 text-slate-400">
+                        <p>{% translate 'Previous' %}</p>
+                        <div class="rounded-full py-0.5 px-5 bg-slate-500 text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                            </svg>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="flex text-xl items-center">
+                <p>{% translate 'from' %} {{page_user_purchased_products.paginator.num_pages}}</p>
+                <div class=" ml-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                    </svg>      
+                </div>                    
+                <div class="rounded-full border-2 px-4 border-blue font-bold my-auto">
+                    <p>{{page_user_purchased_products.number}}</p>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                </svg>
+            </div>
+        </div>
+    </div>
+{% endblock %}

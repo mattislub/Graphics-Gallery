@@ -1,0 +1,33 @@
+{% extends 'pages/root_page.html' %}
+{% load i18n wagtailimages_tags wagtailcore_tags i18n %}
+
+{% block sub_page_content %}
+<div class="container grow mt-12 text-blue">
+    <div class="mx-2.5">
+        {% image page.image original as image %}
+        <img class="mx-auto" src="{{image.url}}" alt="contact-us">
+        <h1 class="text-4xl font-black text-center mt-12 leading-9">{{page.title}}</h1>
+        <h2 class="text-3xl font-normal text-center mt-4 leading-8">{{page.sub_title}}</h2>
+        <form class="mt-12 w-full md:w-2/3 mx-auto text-slate-700" id="contact-us-form" action="/user/resend-contact-us-form/" method="post">
+            {% csrf_token %}
+            <div class="mx-2.5 flex flex-col gap-5">
+                <div class="flex gap-5">
+                    <input class="w-full rounded-full text-end border-blue" type="email" placeholder="{% translate 'Email' %}" name="email" id="email">
+                    <input class="w-full rounded-full text-end border-blue" type="number" placeholder="{% translate 'Phone' %}" name="phone" id="phone">
+                    <input class="w-full rounded-full text-end border-blue" type="text" placeholder="{% translate 'Full name' %}" name="full_name" id="full_name">
+                </div>
+                <textarea class="w-full rounded-xl text-end border-blue" name="message" id="message" cols="30" rows="10" placeholder="{% translate 'How we can help you?' %}"></textarea>
+                <button class="self-center w-auto flex gap-4 items-center rounded-full font-bold text-lg border-2 border-blue bg-blue text-white py-2 px-5 hover:bg-gradient-2 group" role="link" type="submit">
+                    <div class="rounded-full border-2 py-0.5 px-5 bg-blue border-white group-hover:border-blue">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                        </svg>
+                    </div>
+
+                    {% translate 'Send message' %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

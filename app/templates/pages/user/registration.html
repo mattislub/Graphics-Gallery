@@ -1,0 +1,127 @@
+{% extends 'pages/root_page.html' %}
+{% load wagtailcore_tags static i18n widget_tweaks %}
+
+{% block sub_page_content %}
+    {% wagtail_site as current_site %}
+    <div class="mx-6 mt-12 grow rounded-xl p-5 sm:p-24" style="background-image: url('{% static 'media/background_1.webp' %}');">
+        <h1 class="text-center font-bold text-xl sm:text-4xl text-white">{% translate 'Registration' %}</h1>
+        <div class="relative mx-auto max-w-2xl">
+            <div class="absolute -left-2.5 top-1/2 -translate-x-full hidden sm:block">
+                <div class="border-2 border-orange text-white rounded-full p-2">
+                    <svg width="53" height="13" viewBox="0 0 53 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 6.5C10.1667 0.5 18.3333 0.5 26.5 6.5C34.6667 12.5 42.8333 12.5 51 6.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="mt-2.5 border-2 border-white text-white rounded-2xl p-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-12">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                    </svg>
+                </div>
+            </div>
+            <div class="mt-4 bg-gradient-2 p-0.5 rounded-3xl">
+                <div class="bg-white rounded-3xl px-5 py-2.5 sm:px-10 sm:py-5">
+                    <div class="flex items-center gap-2.5">
+                        <div class="h-0.5 bg-blue grow"></div>
+                        <p class="text-center">{% translate 'To register in ' %}{{ current_site.site_name }}</p>
+                        <div class="h-0.5 bg-blue grow"></div>
+                    </div>
+                    <form class="mt-5 rounded-3xl border-2 border-blue p-5" method="POST" action="{{ request.path }}">
+                        {% csrf_token %}
+                        <h2 class="text-end font-bold text-xl">{% translate 'Personal Information' %}</h2>
+                        
+                        {% render_field form.name class='mt-5 rounded-full border-2 border-blue w-full text-end' placeholder=form.name.label %}
+                        <div class="text-xs text-end text-red-500">{{ form.name.errors }}</div>
+                        {% render_field form.email class='mt-4 rounded-full border-2 border-blue w-full text-end' placeholder=form.email.label %}
+                        <div class="text-xs text-end text-red-500">{{ form.email.errors }}</div>
+
+                        <h2 class="mt-5 text-end font-bold text-xl">{% translate 'login details' %}</h2>
+
+                        {% render_field form.username class='mt-5 rounded-full border-2 border-blue w-full text-end' placeholder=form.username.label %}
+                        <div class="text-xs text-end text-red-500">{{ form.username.errors }}</div>
+                        <div class="relative mt-4"
+                            x-data="{password: true}">
+                            {% render_field form.password1 class='rounded-full border-2 border-blue w-full text-end' placeholder=form.password1.label %}
+                            <div class="absolute left-2.5 inset-y-0 flex items-center" onclick="show_hide_password(this, '{{form.password1.auto_id}}')">
+                                <span class="sr-only">{% translate 'Show and hide password' %}</span>
+                                <div id="show">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                    </svg>
+                                </div>
+                                <div id="hide" class="hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-end text-red-500">{{ form.password1.errors }}</div>
+                        <div class="relative mt-4">
+                            {% render_field form.password2 class='rounded-full border-2 border-blue w-full text-end' placeholder=form.password2.label %}
+                            <div class="absolute left-2.5 inset-y-0 flex items-center" onclick="show_hide_password(this, '{{form.password2.auto_id}}')">
+                                <span class="sr-only">{% translate 'Show and hide password' %}</span>
+                                <div id="show">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                    </svg>
+                                </div>
+                                <div id="hide" class="hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-xs text-end text-red-500">{{ form.password2.errors }}</div>
+
+                        <button type="submit" class="mt-10 mx-auto w-fit flex gap-4 items-center rounded-full font-bold text-lg border-2 border-blue bg-blue text-white py-2 px-5 hover:bg-gradient-2 group" role="link" type="submit">
+                            <div class="rounded-full border-2 py-0.5 px-5 bg-blue border-white group-hover:border-blue hidden sm:block">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+                                </svg>
+                            </div>
+                            {% translate 'Register' %}
+                        </button>
+                    </form>
+                    <div class="mt-10 flex items-center gap-2.5">
+                        <div class="h-0.5 bg-blue grow"></div>
+                        <h2 class="text-center">{% translate 'or' %}</h2>
+                        <div class="h-0.5 bg-blue grow"></div>
+                    </div>
+
+                    <a href="/login/google-oauth2/" class="mt-5 p-5 rounded-full border-2 border-blue flex items-center font-bold text-end">
+                        <svg width="52" height="53" viewBox="0 0 52 53" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M16.8412 15.8114C19.3054 13.1327 22.5821 11.7947 26.676 11.7947C29.0412 11.7947 31.0993 12.2489 32.8503 13.1574C34.2274 13.8734 35.3493 14.8436 36.2211 16.0607L45.2584 7.05213C44.3866 6.18065 43.4331 5.37583 42.388 4.6426C38.1232 1.64797 32.885 0.149414 26.676 0.149414C21.5493 0.149414 16.9898 1.26777 12.9974 3.50202C9.00499 5.73874 5.88687 8.85928 3.64301 12.8637C3.37553 13.3401 3.12786 13.824 2.89258 14.3153L13.2302 24.62C13.5398 21.0329 14.7409 18.0975 16.8436 15.8114H16.8412Z" fill="#E54630"/>
+                            <path d="M35.5846 39.3612C33.4398 40.9338 30.8146 41.7189 27.7088 41.7189C23.1741 41.7189 19.6126 40.3808 17.0245 37.7022C15.0778 35.6876 13.8643 33.0831 13.3813 29.886L3.4375 39.7982C3.50437 39.9241 3.57124 40.05 3.64059 40.1734C5.88197 44.1531 9.01248 47.2613 13.0321 49.498C17.0493 51.7347 21.6212 52.8506 26.7479 52.8506C31.0845 52.8506 34.9803 52.0162 38.4303 50.3448C40.3473 49.4165 42.071 48.3229 43.6165 47.0761L35.7481 39.2328C35.6936 39.2748 35.6416 39.3217 35.5846 39.3636V39.3612Z" fill="#41AA45"/>
+                            <path d="M13.1436 26.5358C13.1436 25.8766 13.1733 25.2397 13.2278 24.62L2.89023 14.3153C1.14913 17.9617 0.277344 22.0327 0.277344 26.5358C0.277344 31.4882 1.3324 35.9073 3.44005 39.7981L13.3839 29.8859C13.2254 28.8342 13.1461 27.7159 13.1461 26.5358H13.1436Z" fill="#F9BE00"/>
+                            <path d="M27.1831 32.5818H40.2822C39.3212 35.453 37.808 37.6651 35.7499 39.2327L43.6182 47.0761C44.8541 46.0787 45.976 44.985 46.9716 43.7852C49.213 41.0843 51.0656 38.1588 52.0017 35.0136V22.9906H26.7051L27.1806 32.5818H27.1831Z" fill="#4384FC"/>
+                        </svg>
+                        <div class="ml-auto">{% translate 'Register using Google' %}</div>
+                    </a>
+                </div>
+            </div>
+            <div class="absolute bottom-0 -right-2.5 translate-x-full hidden sm:flex">
+                <div class="self-end border-2 border-green text-white rounded-2xl p-2 hidden lg:block">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="68" viewBox="0 0 24 68" fill="none">
+                        <path d="M13.5 2C13.5 1.17157 12.8284 0.5 12 0.5C11.1716 0.5 10.5 1.17157 10.5 2L13.5 2ZM10.9393 67.0607C11.5251 67.6464 12.4749 67.6464 13.0607 67.0607L22.6066 57.5147C23.1924 56.9289 23.1924 55.9792 22.6066 55.3934C22.0208 54.8076 21.0711 54.8076 20.4853 55.3934L12 63.8787L3.51472 55.3934C2.92893 54.8076 1.97918 54.8076 1.3934 55.3934C0.807609 55.9792 0.807609 56.9289 1.3934 57.5147L10.9393 67.0607ZM10.5 2L10.5 66L13.5 66L13.5 2L10.5 2Z" fill="currentColor"/>
+                    </svg>
+                </div>
+
+                <div class="lg:ml-2.5">
+                    <div class="border-2 border-green lg:border-white text-white rounded-full p-2">
+                        <svg width="53" height="13" viewBox="0 0 53 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 6.5C10.1667 0.5 18.3333 0.5 26.5 6.5C34.6667 12.5 42.8333 12.5 51 6.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="mt-2.5 border-2 border-white text-white rounded-2xl p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-12">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,335 @@
+{% extends 'pages/root_page.html' %}
+{% load static wagtailimages_tags i18n product pages %}
+
+{% block extra_js %}
+<!-- <script src="{% static 'js/Drift.js'%}"></script> -->
+{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .drift-zoom-pane {
+            background: #fff;
+        }
+    </style>
+{% endblock %}
+
+{% block sub_page_content %}
+    {% if request.product %}
+        {% product_in_wishlist request.product as in_wishlist %}
+        {% product_is_paid request.product as is_paid %}
+        {% product_in_basket request.product as in_basket %}
+        {% product_is_avaliable_by_subscription request.product as avaliable_by_subscription %}
+
+        <div class="container grow mt-12 text-blue">
+            <div class="mx-2.5">
+                <div class="flex">
+                    <a href="{% get_url_by_page_name 'images' %}?image-category={{request.product.category.slug}}" class="text-xl font-normal ml-auto">
+                        {{request.product.category.name}}
+                    </a>
+                </div>
+                <div class="mt-2.5 flex flex-wrap sm:flex-nowrap gap-2.5 justify-center">
+                    <div id="preview" class="flex flex-col w-full sm:w-fit relative">
+                        <form
+                            x-data="{
+                                product_id: '{{request.product.id}}',
+                                product_type: 'shop.ImageProduct',
+
+                                product_is_paid: {% if is_paid %} true {% else %} false {% endif %},
+                                product_in_basket: {% if in_basket or request.product.subscription_plans.all %} true {% else %} false {% endif %},
+
+                                error_text: '',
+
+                                make_quick_purchase() {
+                                    if (!$el.checkValidity()) {
+                                        $el.reportValidity();
+                                        return;
+                                    }
+                                    setCookieObject('email', $refs.email.value);
+
+                                    let formData = new FormData($el);
+
+                                    fetch($el.action, {
+                                        method: $el.method,
+                                        body: formData,
+                                    })
+                                    .then(response => {
+                                        let status = response.status;
+                                        return response.json().then(data => {
+                                            return { status: status, data: data };
+                                        });
+                                    })
+                                    .then(result => {
+                                        if (result['status'] === 201) {
+                                            window.open(result['data']['Location'], '_blank');
+                                            window.location.reload();
+                                        }
+                                        else this.error_text = result['data']['detail']
+                                    })
+                                },
+
+                                download() {
+                                    window.open('{% get_download_link request.product %}' + '&size=' + document.getElementById('size').value, '_blank');
+                                }
+                            }"
+                            method="POST"
+                            action="/api/quick-purchase/"
+                            enctype="multipart/form-data"
+                            class="rounded-xl bg-blue bg-opacity-10 p-8 flex flex-col gap-2.5">
+                            {% if not request.product.subscription_plans.all %}
+                                <h2 class="{% if is_paid %} hidden {% endif %} text-4xl text-end font-light italic">{% translate 'Payment options' %}</h2>
+                                {% csrf_token %}
+                                <input type="hidden" name="product_code" id="product_code" value="{{request.product.code}}">
+                                {% if request.user.is_authenticated %}
+                                    <input x-ref="email" type="hidden" name="email" id="email" value="{{request.user.email}}">
+                                    <label class="{% if is_paid %} hidden {% endif %} p-2.5 bg-white rounded-lg" for="balance-payment" style="direction: rtl;">
+                                        <input class="ml-2.5" type="radio" name="payment_method" id="balance-payment" value="balance-payment" checked>
+                                        {% translate 'Pay from balance' %}
+                                    </label>
+                                {% elif not is_paid %}
+                                    <input x-ref="email" class="p-2.5 bg-white rounded-lg border-0" type="email" name="email" placeholder="{% translate 'Email'%}" required style="direction: rtl;">
+                                {% endif %}
+
+                                <label class="{% if is_paid %} hidden {% endif %} p-2.5 bg-white rounded-lg" for="zcredit-payment" style="direction: rtl;">
+                                    <input class="ml-2.5" type="radio"name="payment_method" id="zcredit-payment" value="zcredit-payment" {% if not user.is_authenticated %} checked {% endif %}>
+                                    {% translate 'Pay by card' %}
+                                </label>
+                            {% endif %}
+
+                            <div class="flex flex-nowrap items-center gap-1 justify-between">
+                                <div x-data="popup"
+                                    @keydown.escape.prevent.stop="close($refs.button)"
+                                    @focusin.window="!$refs.popup.contains($event.target) && close()"
+                                    x-id="['popup-button']"
+                                    class="relative">
+                                    <button
+                                        type="button"
+                                        x-ref="button"
+                                        @click="toggle()"
+                                        :aria-expanded="open"
+                                        :aria-controls="$id('popup-button')"
+                                        class="rounded-full border-2 border-blue px-2 py-1 flex font-normal text-nowrap items-center cursor-pointer">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="size-4">
+                                            <path fill-rule="evenodd" d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" />
+                                        </svg>
+                                        <input x-ref="size" type="hidden" name="size" id="size" value="{{request.product.size}}">
+                                        <div x-ref="size-label">{{request.product.size}}</div>
+                                    </button>
+                                    <div
+                                        x-ref="popup"
+                                        x-show="open"
+                                        x-transition.origin.top.left
+                                        @click.outside="close($refs.button);"
+                                        :id="$id('popup-button')"
+                                        class="absolute z-10 top-0 left-0 min-w-full px-2 py-1 rounded-2xl bg-white border-2 border-blue text-nowrap">
+                                        <ul class="flex flex-col">
+                                            {% get_possible_image_sizes as possible_image_sizes%}
+                                            {% for image_size in possible_image_sizes %}
+                                                <li
+                                                    @click="$refs.size.value = '{{image_size}}'; $refs['size-label'].innerHTML = '{{image_size}}'; close($refs.button);"
+                                                    class="w-full border-y py-1 px-2 text-end cursor-pointer -mb-[1px] first:border-t-0 last:border-b-0">{{image_size}}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="font-bold text-xl text-end flex items-center leading-none">
+                                    <p>{% translate 'Select image size' %}</p>
+                                    <div class="ml-2.5 rounded-full py-0.5 px-2 border-2 border-blue">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 6.878V6a2.25 2.25 0 0 1 2.25-2.25h7.5A2.25 2.25 0 0 1 18 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 0 0 4.5 9v.878m13.5-3A2.25 2.25 0 0 1 19.5 9v.878m0 0a2.246 2.246 0 0 0-.75-.128H5.25c-.263 0-.515.045-.75.128m15 0A2.25 2.25 0 0 1 21 12v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6c0-.98.626-1.813 1.5-2.122" />
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-orange font-light text-3xl text-center">
+                                {% if not request.product.subscription_plans.all %}
+                                    ₪ {{request.product.price}}
+                                {% else %}
+                                    {% translate 'Free by subscription' %}
+                                {% endif %}
+                            </p>
+                            <div x-html="error_text" class="text-xs text-end text-red-500"></div>
+                            <div class="flex gap-2.5">
+                                {% if not request.product.subscription_plans.all %}
+                                    <button
+                                        type="button"
+                                        @click="if (product_is_paid) download(); else make_quick_purchase();"
+                                        class="flex gap-4 items-center rounded-full font-bold text-lg border-2 border-blue bg-blue text-white py-2 px-5 hover:bg-gradient-2 group mx-auto">
+                                        <div class="rounded-full border-2 py-0.5 px-5 bg-blue border-white group-hover:border-blue">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                            </svg>
+                                        </div>
+
+                                        {% translate 'Download' %}
+                                    </button>
+                                    {% if not is_paid %}
+                                        <button
+                                            @basket_{{request.product.id}}.window="product_in_basket = $event.detail"
+                                            x-bind:disabled="product_in_basket"
+                                            @click="$store.basket.add(product_type, product_id);
+                                                    $dispatch('basket_{{request.product.id}}', !product_in_basket);
+                                                    {% if reload_with_add_to_basket %}
+                                                        window.location.reload();
+                                                    {% endif %}"
+                                            class="rounded-full py-0.5 px-5 disabled:bg-gray-500 border-blue border-2">
+                                            <span class="sr-only">{% translate 'Add to basket' %}</span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="size-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                                            </svg>
+                                        </button>
+                                    {% endif %}
+                                {% else %}
+                                    <button
+                                        type="button"
+                                        @click="window.open('{% get_download_link request.product %}' + '?size=' + document.getElementById('size').value,'_blank'); window.location.reload();"
+                                        {% if not avaliable_by_subscription %} disabled {% endif %}
+                                        class="flex gap-4 items-center rounded-full font-bold text-lg border-2 border-blue bg-blue text-white py-2 px-5 {% if avaliable_by_subscription %} hover:bg-gradient-2 group {% endif %} mx-auto disabled:brightness-50">
+                                        <div class="rounded-full border-2 py-0.5 px-5 bg-blue border-white group-hover:border-blue">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                                            </svg>
+                                        </div>
+
+                                        {% translate 'Download' %}
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </form>
+                        <div class="mt-2.5 flex flex-col gap-2.5 items-end">
+                            <div class="flex gap-0.5 items-center">
+                                <p>{{request.product.orientation}}</p>
+                                <p class="ml-2.5 font-bold leading-none">
+                                    {% translate 'Orientation' %}
+                                </p>
+                                <div class="ml-2.5 rounded-full py-0.5 px-2 border-2 border-blue">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 0 1-1.125-1.125v-3.75ZM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v8.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-8.25ZM3.75 16.125c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 0 1-1.125-1.125v-2.25Z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex gap-0.5 items-center">
+                                <p>{{request.product.size}}</p>
+                                <p class="ml-2.5 font-bold leading-none">
+                                    {% translate 'Origial size' %}
+                                </p>
+                                <div class="ml-2.5 rounded-full py-0.5 px-2 border-2 border-blue">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="flex gap-0.5 items-center">
+                                <p>{{request.product.dpi}}</p>
+                                <p class="ml-2.5 font-bold leading-none">
+                                    {% translate 'Quality' %}
+                                </p>
+                                <div class="ml-2.5 rounded-full py-0.5 px-2 border-2 border-blue">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="order-first sm:order-last items-end flex-col">
+                        <div class="relative w-fit">
+                            <img id="preview-image" class="object-cover rounded-lg" src="{{request.product.display_image_url}}" data-zoom="{{request.product.display_image_url}}" alt="{{request.product.name}}">
+
+                            <button class="absolute rounded-full py-0.5 px-2 bg-white bg-opacity-70 top-2.5 right-2.5"
+                                x-data="{
+                                    product_in_wishlist: {% if in_wishlist %} true {% else %} false {% endif %},
+                                    product_code: '{{request.product.code}}'
+                                }"
+                                @wishlist_{{request.product.id}}.window="product_in_wishlist = $event.detail;"
+                                @click="if (product_in_wishlist) $store.wishlist.remove(product_code);
+                                        else $store.wishlist.add(product_code);
+                                        $dispatch('wishlist_{{request.product.id}}', !product_in_wishlist)">
+                                <span class="sr-only" x-text="product_in_wishlist ? '{% translate 'Remove from wishlist' %}' : '{% translate 'Add to wishlist' %}'"></span>
+                                <div x-show="!product_in_wishlist">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                                    </svg>
+                                </div>
+                                <div x-show="product_in_wishlist">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+                                        <path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" />
+                                    </svg>
+                                </div>
+                            </button>
+                        </div>
+                        <div id="product-info-container" class="flex flex-col">
+                            <p class=" text-end text-xl font-normal mt-8">
+                                {{request.product.code}} :{% translate 'Image article' %}
+                            </p>
+                            <p class=" text-end text-xl font-normal mt-5 break-all">
+                                {{request.product.name}} :{% translate 'Image name' %}
+                            </p>
+                            <h3 class=" text-end text-xl font-bold mt-5">
+                                :{% translate 'Description' %}
+                            </h3>
+                            <p class="text-end text-xl font-normal mt-2.5">
+                                {{request.product.description}}
+                            </p>
+                            <h2 class="font-light italic text-4xl text-end mt-8">
+                                {% translate 'Image tags' %}
+                            </h2>
+                            <div class="flex flex-row-reverse flex-wrap gap-2.5 mt-2.5">
+                                {% for tag in request.product.tags.all %}
+                                    <a href="{% get_url_by_page_name 'images' %}?search={{tag.name}}" target="_blank" class="rounded-full px-2.5 py-1 border-2 border-blue font-normal text-lg">
+                                        {{tag.name}}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    {% endif %}
+
+    {% if page.popular_products %}
+        {% render_popular_products page.popular_products %}
+    {% endif %}
+
+    {% if page.similar_products %}
+        {% render_similar_products page.similar_products %}
+    {% endif %}
+
+<script>
+    // domReady(function(event) {
+    //     let triger = document.getElementById('preview-image');
+    //     let container = document.getElementById('preview');
+
+    //     new Drift(triger, {
+    //         paneContainer: container,
+    //         inlinePane: false,
+    //     });
+    // });
+
+
+    function adjust_container() {
+        let image_width = document.getElementById('preview-image').width;
+        document.getElementById('product-info-container').style.maxWidth = `${image_width}px`;
+    }
+
+    domReady(function(event) {
+        adjust_container();
+        window.addEventListener("resize", adjust_container);
+
+        document.addEventListener('keydown', (event) => {
+            switch (event.key) {
+                {% if request.user.is_authenticated %}
+                case '+':
+                    add_to_wishlist_by_button();
+                    break;
+                case 'Enter':
+                    add_to_basket_by_button();
+                    break;
+                {% endif %}
+            }
+            });
+    });
+
+</script>
+{% endblock %}

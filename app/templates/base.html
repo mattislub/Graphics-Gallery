@@ -1,0 +1,91 @@
+{% load static wagtailcore_tags wagtailuserbar i18n tailwind_tags widget_tweaks meta %}
+{% get_current_language as lang %}
+
+
+<!DOCTYPE html>
+<html lang="{{lang}}" {% meta_namespaces_schemaorg %}>
+    <head {% meta_namespaces %}>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="icon" type="image/x-icon" href="{% static 'media/logo.webp' %}">
+        <script src="{% static 'js/doom_ready.js'%}"></script>
+        <script src="{% static 'js/cookies.js'%}"></script>
+        <script src="{% static 'js/url_params.js'%}"></script>
+        <script src="{% static 'js/script.js'%}"></script>
+
+        <!-- Accessibility widget -->
+        <script src="https://website-widgets.pages.dev/dist/sienna.min.js" defer></script>
+
+        <!-- Alpine Plugins -->
+        <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
+
+        <!-- Alpine Core -->
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+
+        <title>{% block title %}{% if page.seo_title %}{{ page.seo_title }}{% else %}{{ page.title }}{% endif %}{% endblock %}{% block title_suffix %}{% wagtail_site as current_site %}{% if current_site and current_site.site_name %} - {{ current_site.site_name }}{% endif %}{% endblock %}</title>
+
+        {% include "meta/meta.html" %}
+
+        {% if request.in_preview_panel %}
+            <base target="_blank">
+        {% endif %}
+
+        {% tailwind_preload_css %}
+        {% tailwind_css %}
+
+        {% block extra_css %}
+        {# Override this in templates to add extra stylesheets #}
+        {% endblock %}
+    </head>
+
+    <body class="{% block body_class %}{% endblock %}">
+        {% wagtailuserbar %}
+
+        {% block content %}{% endblock %}
+
+        {% block extra_js %}
+        {# Override this in templates to add extra javascript #}
+        {% endblock %}
+        <style>
+            .asw-widget {
+                position: relative;
+            }
+            .asw-menu-btn {
+                display: none !important;
+            }
+            .my-asw-menu-btn {
+                position: absolute;
+                z-index: 500000;
+                transition: transform .2s ease;
+                border-top-right-radius: 39px;
+                border-bottom-right-radius: 39px;
+                align-items: center;
+                justify-content: center;
+                width: 98px;
+                height: 78px;
+                padding: 10px 15px 10px 25px;
+                display: flex;
+                cursor: pointer;
+                background-color: #fff;
+                text-decoration: none !important;
+            }
+        </style>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', (event) => {
+                document.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                });
+            });
+            function update_accessibility_widget() {
+                let accessibility_btn = document.querySelector('[class="asw-menu-btn"]');
+                accessibility_btn.classList.remove('asw-menu-btn')
+                accessibility_btn.classList.add('my-asw-menu-btn')
+                accessibility_btn.style.left = 0;
+                accessibility_btn.style.bottom = '56px';
+                accessibility_btn.innerHTML = '<svg width="38" height="48" viewBox="0 0 38 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M37.075 38.354L27.2288 28.5078H17.6467V22.9882H27.303C28.8082 22.9882 30.0286 21.7679 30.0286 20.2626C30.0286 18.7573 28.8082 17.537 27.303 17.537H17.6467V14.9366C17.6467 13.4515 16.4823 12.1961 14.9977 12.1553C13.4574 12.1131 12.1956 13.3492 12.1956 14.8799V32.1419C12.1956 33.1455 13.0091 33.959 14.0126 33.959H24.9709L33.2205 42.2086C34.2849 43.2729 36.0107 43.2729 37.075 42.2086C38.1393 41.1441 38.1393 39.4184 37.075 38.354Z" fill="currentColor"/><path d="M19.2756 6.17982C19.8234 3.86245 18.3889 1.53978 16.0715 0.991997C13.7542 0.444211 11.4315 1.87874 10.8837 4.19612C10.3359 6.51349 11.7704 8.83616 14.0878 9.38394C16.4052 9.93173 18.7279 8.4972 19.2756 6.17982Z" fill="currentColor"/><path d="M25.6549 38.4972C23.5326 42.1811 19.554 44.6665 15.0058 44.6665C8.23451 44.6665 2.72558 39.1576 2.72558 32.3863C2.72558 27.6054 5.47214 23.4543 9.46993 21.4267V18.439C3.92756 20.6467 0 26.0663 0 32.3863C0 40.6605 6.73163 47.392 15.0058 47.392C20.3018 47.392 24.9657 44.6342 27.6371 40.4793L25.6549 38.4972Z" fill="currentColor"/></svg>'
+            }
+            setTimeout(update_accessibility_widget, 1000);
+        </script>
+    </body>
+</html>

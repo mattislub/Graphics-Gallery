@@ -1,0 +1,24 @@
+{% load i18n product pages %}
+
+{% with popular_queries.current_option as current_option %}
+    <div id="popular-queries" class="mt-12 container">
+        <div class="mx-2.5">
+            <h2 class="text-blue text-end text-4xl sm:text-7xl leading-none font-bold">
+                <span class="text-light_blue">
+                    {{current_option.1}}
+                </span>
+                {{popular_queries.title}}
+            </h2>
+            <div class="mt-12 flex flex-wrap gap-2.5 sm:gap-5" style="direction: rtl;">
+                {% get_popular_queries current_option.0 popular_queries.display as popular_queries_list %}
+                {% for popular_query in popular_queries_list %}
+                    {% if current_option.0 == 'tags' %}
+                        <a href="{% get_url_by_page_name 'images' %}?search={{popular_query.name}}" {% if popular_queries.new_tab %} target="_blank" {% endif %} class="border border-blue text-blue px-2 py-1 rounded-full hover:bg-blue hover:bg-opacity-30 hover:text-white hover:border-transparent">{{popular_query.name}}</a>
+                    {% elif current_option.0 == 'categories' %}
+                        <a href="{% get_url_by_page_name 'images' %}?image-category={{popular_query.slug}}" {% if popular_queries.new_tab %} target="_blank" {% endif %} class="border border-blue text-blue px-2 py-1 rounded-full hover:bg-blue hover:bg-opacity-30 hover:text-white hover:border-transparent">{{popular_query.name}}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endwith %}

@@ -1,0 +1,121 @@
+{% load i18n %}
+
+<div class="fixed inset-0 z-[99999] overflow-auto bg-white flex flex-col" role="dialog"
+    x-data="{
+        open: false,
+
+        product_index: -1,
+        product_list: null,
+
+        product_id: '',
+        product_code: '',
+        product_type: '',
+        product_name: '',
+        product_price: '',
+        product_buttons: '',
+        product_is_paid: '',
+        product_in_basket: '',
+        product_in_wishlist: '',
+        product_display_url: '',
+
+        open_modal() {
+            let header = document.getElementById('header');
+            let header_container = document.getElementById('header_container');
+            header_container.innerHTML = '';
+            header_container.appendChild(header.cloneNode(true));
+
+            document.body.style.overflow = 'hidden';
+            this.open = true;
+        },
+
+        close_modal() {
+            document.body.style.overflow = 'auto';
+            this.product_list = null;
+            this.product_index = -1;
+            this.open = false;
+        },
+
+        update_product_by_index() {
+            if (this.product_index >= 0) {
+                let product = this.product_list[this.product_index]._x_dataStack[0];
+
+                let children = Array.from(product.$refs['product-buttons'].children);
+                children.shift();
+
+                this.product_id = product.product_id;
+                this.product_code = product.product_code;
+                this.product_type = product.product_type;
+                this.product_name = product.product_name;
+                this.product_price = product.product_price;
+                this.product_is_paid = product.product_is_paid;
+                this.product_in_basket = product.product_in_basket;
+                this.product_in_wishlist = product.product_in_wishlist;
+                this.product_display_url = product.product_display_url;
+                this.product_buttons = children.map(child => child.outerHTML).join('');
+            }
+        }
+    }"
+    @keydown.window="() => {
+        let product_modal = document.querySelector('[x-ref=\'product-modal\']')._x_dataStack[0];
+
+        if ($event.key === 'Enter' && product_modal.open && !product_modal.product_in_basket && !product_modal.product_is_paid) {
+            $store.basket.add(product_modal.product_type, product_modal.product_id);
+            $dispatch('basket_' + product_modal.product_id, !product_modal.product_in_basket);
+        }
+        else if ($event.key === '+' && product_modal.open) {
+            if (product_modal.product_in_wishlist) $store.wishlist.remove(product_modal.product_code);
+            else $store.wishlist.add(product_modal.product_code);
+
+            $dispatch('wishlist_' + product_modal.product_id, !product_modal.product_in_wishlist)
+        }
+        else if (($event.key === 'ArrowLeft' || $event.key === 'ArrowUp') && product_modal.product_index > 0) {
+            product_modal.product_index -= 1;
+        }
+        else if (($event.key === 'ArrowRight' || $event.key === 'ArrowDown') && product_modal.product_index < product_modal.product_list.length - 1) {
+            product_modal.product_index += 1;
+        }
+    }"
+    x-init="$watch('product_index', value => update_product_by_index());"
+    @click="close_modal()"
+    x-ref="product-modal"
+    :aria-hidden="!open"
+    x-show="open">
+    <button class="fixed top-28 left-6 z-[99] text-blue hover:opacity-60"
+        @click="close_modal()">
+        {% translate 'Close' %}
+    </button>
+    <div class="fixed bottom-12 left-1/2 z-[60] -translate-x-1/2 flex items-center">
+        <div class="mx-auto flex gap-2"
+            @click="$event.stopPropagation();"
+            x-html="product_buttons"></div>
+    </div>
+    <div id="header_container"class="mx-6 mt-6 z-50"
+        @click="$event.stopPropagation();">
+    </div>
+    <div class="flex justify-center items-center relative w-screen grow">
+        <img class="h-full object-contain" alt="preview"
+            @click="$event.stopPropagation();"
+            x-bind:src="product_display_url">
+        <div class="absolute top-10 flex flex-col gap-2.5 bg-blue bg-opacity-40 p-2.5 rounded-xl"
+            @click="$event.stopPropagation();">
+            <p class="text-white text-center font-normal text-xl"
+                x-text="product_name"></p>
+            <p class="text-white text-center font-bold text-2xl"
+                x-text="product_price"></p>
+        </div>
+        <button class="absolute disabled:opacity-0 left-0 top-1/2 -translate-y-1/2"
+            :disabled="product_index <= 0"
+            @click="$event.stopPropagation(); product_index -= 1;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-12 h-12 stroke-blue">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+        </button>
+        <button class="absolute disabled:opacity-0 right-0 top-1/2 -translate-y-1/2"
+            :disabled="product_list === null || product_index === product_list.length - 1"
+            @click="$event.stopPropagation(); product_index += 1;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-12 h-12 stroke-blue">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+        </button>
+    </div>
+</div>
